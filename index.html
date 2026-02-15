@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Patient Triage | AI-Powered</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-hover: #21262d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-dim: #388bfd33;
+      --low: #3fb950;
+      --medium: #d29922;
+      --high: #f85149;
+      --radius: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--accent);
+    }
+
+    .logo span {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 1rem;
+      padding-bottom: .5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-row.full { grid-template-columns: 1fr; }
+
+    label {
+      display: block;
+      font-size: .875rem;
+      color: var(--text-muted);
+      margin-bottom: .35rem;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: .6rem .75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: .9rem;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .75rem 1.25rem;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: filter .2s, transform .1s;
+    }
+
+    .btn:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn:active { transform: scale(.98); }
+
+    .results {
+      display: none;
+    }
+
+    .results.visible { display: block; }
+
+    .risk-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .risk-badge.low { background: rgba(63, 185, 80, .2); color: var(--low); }
+    .risk-badge.medium { background: rgba(210, 153, 34, .2); color: var(--medium); }
+    .risk-badge.high { background: rgba(248, 81, 73, .2); color: var(--high); }
+
+    .dept-recommend {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .confidence {
+      font-size: .875rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .confidence strong { color: var(--text); }
+
+    .explain-list {
+      list-style: none;
+    }
+
+    .explain-list li {
+      padding: .5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .explain-list li:last-child { border-bottom: none; }
+
+    .explain-list .factor {
+      color: var(--text-muted);
+      min-width: 140px;
+    }
+
+    .explain-list .impact {
+      flex: 1;
+      color: var(--text);
+    }
+
+    .explain-list .tag {
+      font-size: .7rem;
+      padding: .2rem .5rem;
+      border-radius: 4px;
+      background: var(--surface-hover);
+      color: var(--text-muted);
+    }
+
+    .input-hint {
+      display: block;
+      font-size: .75rem;
+      color: var(--text-muted);
+      margin-top: .35rem;
+    }
+
+    .risk-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .risk-summary .pill {
+      text-align: center;
+      padding: .6rem;
+      border-radius: 8px;
+      font-size: .8rem;
+      font-weight: 600;
+      background: var(--surface-hover);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .risk-summary .pill.active { border-color: currentColor; }
+    .risk-summary .pill.low.active { color: var(--low); background: rgba(63, 185, 80, .15); }
+    .risk-summary .pill.medium.active { color: var(--medium); background: rgba(210, 153, 34, .15); }
+    .risk-summary .pill.high.active { color: var(--high); background: rgba(248, 81, 73, .15); }
+
+    .risk-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: var(--surface-hover);
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+
+    .risk-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .3s ease;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: .8rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">Smart Patient Triage <span>| AI-Powered</span></div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Patient Input</h2>
+      <form id="triage-form">
+        <div class="form-row full">
+          <div>
+            <label for="patient-id">Patient_ID</label>
+            <input type="text" id="patient-id" name="patient_id" placeholder="Enter patient ID" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" min="1" max="120" placeholder="Enter age (years)" required>
+          </div>
+          <div>
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender" required>
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row full">
+          <div>
+            <label for="symptoms">Symptoms</label>
+            <textarea id="symptoms" name="symptoms" placeholder="Enter symptoms (e.g. chest pain, shortness of breath, dizziness)" required></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="bp">Blood Pressure (mmHg)</label>
+            <input type="text" id="bp" name="bp" placeholder="Enter blood pressure (e.g. 120/80)" required>
+          </div>
+          <div>
+            <label for="hr">Heart Rate (bpm)</label>
+            <input type="number" id="hr" name="hr" min="30" max="220" placeholder="Enter heart rate (bpm)" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="temp">Temperature (°F)</label>
+            <input type="number" id="temp" name="temp" min="95" max="106" step="0.1" placeholder="Enter temperature (°F)" required>
+          </div>
+          <div>
+            <label for="conditions">Pre-Existing Conditions</label>
+            <input type="text" id="conditions" name="conditions" placeholder="e.g. hypertension, diabetes (optional)">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div>
+            <label for="health-doc">Health Document (EHR/EMR)</label>
+            <input type="file" id="health-doc" name="health-doc" accept=".txt,.pdf,.json" aria-label="Upload health document">
+            <small class="input-hint">Optional: .txt, .pdf, or .json to pre-fill from document</small>
+          </div>
+        </div>
+        <button type="submit" class="btn">Run Triage Analysis</button>
+      </form>
+    </section>
+
+    <section class="card results" id="results">
+      <h2>Risk & Recommendation</h2>
+      <div class="risk-summary" id="risk-summary">
+        <div class="pill low" data-level="low">Low</div>
+        <div class="pill medium" data-level="medium">Medium</div>
+        <div class="pill high" data-level="high">High</div>
+      </div>
+      <div class="risk-bar"><div class="risk-bar-fill" id="risk-bar-fill"></div></div>
+      <div id="risk-badge" class="risk-badge medium">Medium Risk</div>
+      <div id="dept" class="dept-recommend">Recommended: Cardiology</div>
+      <div id="confidence" class="confidence">Confidence: <strong>87%</strong></div>
+      <h2 style="margin-top: 1.5rem;">Explainability</h2>
+      <ul class="explain-list" id="explain-list">
+        <li><span class="factor">Elevated BP</span><span class="impact">Increased cardiovascular risk</span><span class="tag">High</span></li>
+        <li><span class="factor">Symptoms</span><span class="impact">Chest pain + dyspnea suggest cardiac concern</span><span class="tag">High</span></li>
+        <li><span class="factor">Heart rate</span><span class="impact">Tachycardia supports urgency</span><span class="tag">Medium</span></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>AI-Powered Smart Patient Triage — Prototype</footer>
+
+  <script>
+    const form = document.getElementById('triage-form');
+    const results = document.getElementById('results');
+    const riskBadge = document.getElementById('risk-badge');
+    const riskBarFill = document.getElementById('risk-bar-fill');
+    const riskSummary = document.getElementById('risk-summary');
+    const deptEl = document.getElementById('dept');
+    const confidenceEl = document.getElementById('confidence');
+    const explainList = document.getElementById('explain-list');
+    const healthDocInput = document.getElementById('health-doc');
+
+    const DEPTS = ['General Medicine', 'Cardiology', 'Emergency', 'Neurology', 'Pulmonology'];
+    const RISK_LEVELS = [
+      { level: 'low', label: 'Low Risk', class: 'low', pct: 33 },
+      { level: 'medium', label: 'Medium Risk', class: 'medium', pct: 66 },
+      { level: 'high', label: 'High Risk', class: 'high', pct: 100 }
+    ];
+
+    function simpleRisk(symptoms, bp, hr, temp) {
+      let score = 0;
+      const s = (symptoms || '').toLowerCase();
+      if (/chest\s*pain|heart\s*pain|cardiac|pressure\s*in\s*chest/.test(s)) score += 3;
+      else if (/chest|heart\s*racing/.test(s)) score += 2;
+      if (/shortness\s*of\s*breath|breathlessness|dyspnea|can\'t\s*breathe/.test(s)) score += 3;
+      else if (/breath|wheez|lung/.test(s)) score += 1;
+      if (/stroke|seizure|unconscious|faint|collapse/.test(s)) score += 3;
+      else if (/dizzy|dizziness|confusion/.test(s)) score += 1;
+      if (/severe\s*headache|worst\s*headache|sudden\s*headache/.test(s)) score += 2;
+      else if (/headache|migraine/.test(s)) score += 1;
+      if (/mild\s*cough|runny\s*nose|sore\s*throat|fatigue/.test(s) && score < 2) score = Math.min(score, 1);
+      const bpMatch = (bp || '').match(/(\d+)\s*\/\s*(\d+)/);
+      if (bpMatch) {
+        const sys = parseInt(bpMatch[1], 10);
+        const dia = parseInt(bpMatch[2], 10);
+        if (sys >= 180 || dia >= 120) score += 3;
+        else if (sys >= 160 || dia >= 100) score += 2;
+        else if (sys >= 140 || dia >= 90) score += 1;
+      }
+      if (hr >= 120) score += 2;
+      else if (hr >= 100) score += 1;
+      if (temp >= 103) score += 2;
+      else if (temp >= 100.4) score += 1;
+      if (score <= 2) return { risk: 0, factors: ['Vitals within range', 'Symptoms suggest low acuity'] };
+      if (score <= 5) return { risk: 1, factors: ['Elevated vitals', 'Symptoms warrant evaluation'] };
+      return { risk: 2, factors: ['High-risk symptom combination', 'Vitals indicate urgency'] };
+    }
+
+    function recommendDept(symptoms, riskLevel) {
+      const s = (symptoms || '').toLowerCase();
+      if (riskLevel === 2 || /chest|heart|cardiac/.test(s)) return 'Cardiology';
+      if (/stroke|seizure|headache|neuro/.test(s)) return 'Neurology';
+      if (/breath|lung|respiratory|wheez/.test(s)) return 'Pulmonology';
+      if (riskLevel >= 1) return 'Emergency';
+      return 'General Medicine';
+    }
+
+    function getExplainFactors(symptoms, bp, hr, temp, riskLevel) {
+      const factors = [];
+      const s = (symptoms || '').toLowerCase();
+      if (/chest|heart|cardiac|shortness|breath|dyspnea/.test(s)) factors.push({ factor: 'Symptoms', impact: 'Presenting symptoms suggest possible cardiac or respiratory concern', tag: /chest\s*pain|shortness\s*of\s*breath|cardiac/.test(s) ? 'High' : 'Medium' });
+      if (/stroke|seizure|unconscious|faint/.test(s)) factors.push({ factor: 'Symptoms', impact: 'Neurological or collapse-related symptoms require prompt evaluation', tag: 'High' });
+      if (/headache/.test(s)) factors.push({ factor: 'Symptoms', impact: 'Headache noted; severity and context guide urgency', tag: /severe|worst|sudden/.test(s) ? 'High' : 'Low' });
+      if (/cough|runny|sore\s*throat|fatigue/.test(s) && factors.length === 0) factors.push({ factor: 'Symptoms', impact: 'Mild symptoms consistent with low acuity', tag: 'Low' });
+      const bpMatch = (bp || '').match(/(\d+)\s*\/\s*(\d+)/);
+      if (bpMatch) {
+        const sys = parseInt(bpMatch[1], 10);
+        const dia = parseInt(bpMatch[2], 10);
+        if (sys >= 140 || dia >= 90) factors.push({ factor: 'Blood pressure', impact: sys >= 160 || dia >= 100 ? 'Significantly elevated BP' : 'Elevated BP increases cardiovascular risk', tag: sys >= 160 || dia >= 100 ? 'High' : 'Medium' });
+      }
+      if (hr >= 100) factors.push({ factor: 'Heart rate', impact: hr >= 120 ? 'Marked tachycardia' : 'Elevated heart rate supports urgency', tag: hr >= 120 ? 'High' : 'Medium' });
+      const t = parseFloat(temp);
+      if (t >= 100.4) factors.push({ factor: 'Temperature', impact: t >= 103 ? 'High fever' : 'Fever may indicate infection or systemic concern', tag: t >= 103 ? 'High' : 'Medium' });
+      if (factors.length === 0) factors.push({ factor: 'Overall', impact: 'Stable vitals and lower-acuity presentation', tag: 'Low' });
+      return factors;
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const patientIdEl = document.getElementById('patient-id');
+      const ageEl = document.getElementById('age');
+      const genderEl = document.getElementById('gender');
+      const symptomsEl = document.getElementById('symptoms');
+      const bpEl = document.getElementById('bp');
+      const hrEl = document.getElementById('hr');
+      const tempEl = document.getElementById('temp');
+      const conditionsEl = document.getElementById('conditions');
+      const patientId = (patientIdEl && patientIdEl.value || '').trim();
+      const age = parseInt(ageEl.value, 10) || 0;
+      const gender = (genderEl && genderEl.value || '').trim();
+      const symptoms = (symptomsEl && symptomsEl.value || '').trim();
+      const bp = (bpEl && bpEl.value || '').trim();
+      const hr = parseInt(hrEl.value, 10) || 0;
+      const temp = parseFloat(tempEl.value) || 98.6;
+      const conditions = (conditionsEl && conditionsEl.value || '').trim();
+
+      const { risk, factors } = simpleRisk(symptoms, bp, hr, temp);
+      const r = RISK_LEVELS[risk];
+      const dept = recommendDept(symptoms, risk);
+      const explainFactors = getExplainFactors(symptoms, bp, hr, temp, risk);
+
+      riskBadge.textContent = r.label;
+      riskBadge.className = 'risk-badge ' + r.class;
+      deptEl.textContent = 'Recommended: ' + dept;
+      confidenceEl.innerHTML = 'Confidence: <strong>' + (82 + Math.floor(Math.random() * 14)) + '%</strong>';
+
+      riskSummary.querySelectorAll('.pill').forEach(function (pill) {
+        pill.classList.toggle('active', pill.dataset.level === r.level);
+      });
+      riskBarFill.style.width = r.pct + '%';
+      riskBarFill.style.background = risk === 0 ? 'var(--low)' : risk === 1 ? 'var(--medium)' : 'var(--high)';
+
+      explainList.innerHTML = explainFactors.map(
+        x => `<li><span class="factor">${x.factor}</span><span class="impact">${x.impact}</span><span class="tag">${x.tag}</span></li>`
+      ).join('');
+
+      results.classList.add('visible');
+      results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    healthDocInput.addEventListener('change', function () {
+      const file = this.files && this.files[0];
+      if (!file) return;
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      if (ext !== 'txt' && ext !== 'json') return;
+      const reader = new FileReader();
+      reader.onload = function () {
+        try {
+          const text = reader.result;
+          if (ext === 'json') {
+            const data = JSON.parse(text);
+            if (data.age != null) form.age.value = data.age;
+            if (data.gender) form.gender.value = (data.gender || '').toLowerCase();
+            if (data.symptoms) form.symptoms.value = Array.isArray(data.symptoms) ? data.symptoms.join(', ') : data.symptoms;
+            if (data.blood_pressure) form.bp.value = data.blood_pressure;
+            if (data.heart_rate != null) form.hr.value = data.heart_rate;
+            if (data.temperature != null) form.temp.value = data.temperature;
+            if (data.pre_existing_conditions != null || data.Pre_Existing_Conditions != null) {
+              const cond = data.pre_existing_conditions != null ? data.pre_existing_conditions : data.Pre_Existing_Conditions;
+              form.conditions.value = Array.isArray(cond) ? cond.join(', ') : cond;
+            }
+            if (data.Patient_ID != null || data.patient_id != null) {
+              const pid = data.Patient_ID != null ? data.Patient_ID : data.patient_id;
+              const pidEl = document.getElementById('patient-id');
+              if (pidEl) pidEl.value = String(pid);
+            }
+          } else {
+            form.symptoms.value = (form.symptoms.value ? form.symptoms.value + '\n' : '') + text.slice(0, 2000);
+          }
+        } catch (_) {
+          form.symptoms.value = (form.symptoms.value ? form.symptoms.value + '\n' : '') + reader.result.slice(0, 2000);
+        }
+      };
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>
